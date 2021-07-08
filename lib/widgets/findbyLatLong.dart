@@ -20,7 +20,6 @@ class _FindByLatLongState extends State<FindByLatLong> {
   String long = "";
   bool _submitted = false;
   Future future;
-  Future<Position> _position;
 
   @override
   void dispose() {
@@ -35,7 +34,7 @@ class _FindByLatLongState extends State<FindByLatLong> {
   @override
   void initState() {
     // TODO: implement initState
-    future = _determinePosition();
+    future = _listOfCenters();
     super.initState();
   }
 
@@ -177,33 +176,34 @@ class _FindByLatLongState extends State<FindByLatLong> {
         // ),
 
         // if (_submitted)
-          Container(
-            height: 400,
-            child: FutureBuilder(
-              future: future(),
-              builder: (ctx, dataSnapshot) {
-                if (dataSnapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+        Container(
+          height: 400,
+          child: FutureBuilder(
+            future: _listOfCenters(),
+            builder: (ctx, dataSnapshot) {
+              if (dataSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else {
+                if (dataSnapshot.error != null) {
+                  return Center(
+                    child: Text('An error occurred!'),
+                  );
                 } else {
-                  if (dataSnapshot.error != null) {
-                    return Center(
-                      child: Text('An error occurred!'),
-                    );
-                  } else {
-                    return ListView.builder(
-                        itemCount: dataSnapshot.data.length,
-                        itemBuilder: (ctx, i) {
-                          model.Center center = dataSnapshot.data[i];
-                          print(center.name);
-                          return Card(
-                            child: ListTile(title: Text(center.name)),
-                          );
-                        });
-                  }
+                  print(dataSnapshot.data.length);
+                  return ListView.builder(
+                      itemCount: dataSnapshot.data.length,
+                      itemBuilder: (ctx, i) {
+                        model.Center center = dataSnapshot.data[i];
+                        print(center.name);
+                        return Card(
+                          child: ListTile(title: Text(center.name)),
+                        );
+                      });
                 }
-              },
-            ),
+              }
+            },
           ),
+        ),
       ],
     ));
   }
@@ -242,12 +242,17 @@ class _FindByLatLongState extends State<FindByLatLong> {
 
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
-    Position position = await Geolocator.getCurrentPosition(
+    return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
-    future = Provider.of<GetByLatLong>(context, listen: false)
-                      .fetchCenters(position.latitude.toString(), position.longitude.toString());
+  }
+
+
+  Future<List<model.Center>> _listOfCenters() async {
+    Position position= await _determinePosition();
     print(position);
-    return future;
+    return await Provider.of<GetByLatLong>(context,listen:false ).fetchCenters(
+        position.latitude.toString(), position.longitude.toString());
+
   }
 }
 
