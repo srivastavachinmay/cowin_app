@@ -6,6 +6,7 @@ class FindByLocation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+
         title: Text("Find By Location",style: TextStyle(color: Theme.of(context).accentColor),),
       ),
       body: SafeArea(

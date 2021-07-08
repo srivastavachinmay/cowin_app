@@ -18,6 +18,7 @@ class GetByLatLong with ChangeNotifier {
       _centers = model.centers;
     }on Exception catch(e){
       //TODO
+      print(e.toString());
     }
     return _centers;
   }
