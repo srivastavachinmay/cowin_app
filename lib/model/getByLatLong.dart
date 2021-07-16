@@ -7,7 +7,6 @@ import 'dart:async';
 class GetByLatLong with ChangeNotifier {
   List<Center> _centers;
 
-  GetByLatLong();
 
   Future<List<Center>> fetchCenters(String lat, String long) async {
     try {

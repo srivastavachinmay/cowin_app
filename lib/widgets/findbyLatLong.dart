@@ -1,9 +1,13 @@
 import 'package:cowin_app/model/getByLatLong.dart';
 import 'package:cowin_app/model/getByLatLongModel.dart' as model;
+import 'package:cowin_app/model/getByPin.dart';
+import 'package:cowin_app/model/getByPinModel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoder/geocoder.dart';
+
 
 class FindByLatLong extends StatefulWidget {
   @override
@@ -20,7 +24,7 @@ class _FindByLatLongState extends State<FindByLatLong> {
   String lat = "";
   String long = "";
   // bool _submitted = false;
-  Future future;
+  Future<List<Session>> future;
 
   @override
   void dispose() {
@@ -35,14 +39,15 @@ class _FindByLatLongState extends State<FindByLatLong> {
   @override
   void initState() {
     // TODO: implement initState
-    future = _listOfCenters();
+    future = _listofSession();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _listOfCenters(),
+      future: _listofSession(),
+
       builder: (ctx, dataSnapshot) {
         if (dataSnapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -51,22 +56,31 @@ class _FindByLatLongState extends State<FindByLatLong> {
             print("///////////////////////////////////////");
             print(dataSnapshot.error);
             print("///////////////////////////////////////");
-            return Center(
-              child: Text('An error occurred! \n ${dataSnapshot.error}'),
+            return Column(
+              children: [
+                // Center(
+                //   child: Text('An error occurred! \n ${dataSnapshot.error}'),
+                  ElevatedButton(
+                    child: Text("Give Permission"),
+                    onPressed: (){
+                      _givePermission();
+                    },
+                  ),
+              ],
             );
           } else {
             print(dataSnapshot.data.length);
             return ListView.builder(
               physics: BouncingScrollPhysics(),
-              itemCount: 15,
+              itemCount: dataSnapshot.data.length,
               itemBuilder: (ctx, i) {
-                model.Center center = dataSnapshot.data[i];
-                print(center.name);
+                Session session = dataSnapshot.data[i];
+                // print(center.name);
                 return Card(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   child: ListTile(
-                    title: Text(center.name),
-                    subtitle: Text("Address: ${center.location}"),
+                    title: Text(session.name),
+                    subtitle: Text("Address: ${session.pincode}"),
                   ),
                 );
               },
@@ -75,6 +89,31 @@ class _FindByLatLongState extends State<FindByLatLong> {
         }
       },
     );
+  }
+  Future _givePermission()async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+    // if (!serviceEnabled) {
+    //   return Future.error('Location services are disabled.');
+    // }
+
+    permission = await Geolocator.checkPermission();
+    print("Permission $permission");
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.checkPermission();
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
   }
 
   Future<Position> _determinePosition() async {
@@ -99,15 +138,33 @@ class _FindByLatLongState extends State<FindByLatLong> {
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
     }
+    // final coordinates = new Coordinates(26.874980, 81.011701);
+    // var addresses = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    // var first = addresses.first;
+    // print("Address : ${addresses}");
+    // print("Postal Code : ${first.postalCode}");
+    // print("${first.featureName} : ${first.addressLine}");
+    // print("${addresses.first.locality}");
+
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
   }
 
   Future<List<model.Center>> _listOfCenters() async {
     Position position = await _determinePosition();
-    print(position);
+    // print(position);
     return await Provider.of<GetByLatLong>(context, listen: false).fetchCenters(
         position.latitude.toString(), position.longitude.toString());
+  }
+  Future<List<Session>> _listofSession() async {
+    Position position = await _determinePosition();
+    // print(position);
+    print(position);
+    final coordinates = new Coordinates(position.latitude, position.longitude);
+    var addresses = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var first = addresses.first;
+    print(first.postalCode);
+    return await Provider.of<GetByPin>(context, listen: false).fetchCenters(first.postalCode);
   }
 }
 

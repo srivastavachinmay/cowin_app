@@ -1,4 +1,5 @@
 import 'package:cowin_app/model/getByLatLong.dart';
+import 'package:cowin_app/model/getByPin.dart';
 import 'package:cowin_app/screens/findByLocationScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => GetByLatLong(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => GetByPin(),
         ),
       ],
       child: MaterialApp(
