@@ -11,7 +11,7 @@ class GetByPin with ChangeNotifier {
   Future<List<Session>> fetchCenters(String pin) async {
     try {
       var url = Uri.parse(
-          "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin?pincode=$pin&date=17-07-2021");
+          "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByPin?pincode=$pin&date=20-07-2021");
       final response = await http.get(url);
       GetByPinModel model = GetByPinModel.fromJson(json.decode(response.body));
       _sessions = model.sessions;

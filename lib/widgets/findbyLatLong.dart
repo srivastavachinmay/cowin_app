@@ -163,7 +163,7 @@ class _FindByLatLongState extends State<FindByLatLong> {
     final coordinates = new Coordinates(position.latitude, position.longitude);
     var addresses = await Geocoder.local.findAddressesFromCoordinates(coordinates);
     var first = addresses.first;
-    print(first.postalCode);
+    print(first.addressLine);
     return await Provider.of<GetByPin>(context, listen: false).fetchCenters(first.postalCode);
   }
 }
